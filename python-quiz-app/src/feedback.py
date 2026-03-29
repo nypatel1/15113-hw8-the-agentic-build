@@ -1,19 +1,40 @@
-def get_feedback(question_id):
-    # Function to retrieve feedback for a specific question
-    pass
+import json
+import os
 
-def submit_feedback(question_id, rating):
-    # Function to submit feedback for a specific question
-    pass
+FEEDBACK_FILE = 'data/feedback.json'
 
-def calculate_weights():
-    # Function to calculate weights based on user feedback
-    pass
-
-def load_feedback():
-    # Function to load feedback data from a storage mechanism
-    pass
-
-def save_feedback():
-    # Function to save feedback data to a storage mechanism
-    pass
+class FeedbackSystem:
+    def __init__(self, username):
+        self.username = username
+        self.feedback = self.load_feedback()
+    
+    def load_feedback(self):
+        if not os.path.exists(FEEDBACK_FILE):
+            return {}
+        try:
+            with open(FEEDBACK_FILE, 'r') as f:
+                all_feedback = json.load(f)
+                return all_feedback.get(self.username, {})
+        except (json.JSONDecodeError, IOError):
+            return {}
+    
+    def save_feedback(self):
+        all_feedback = {}
+        if os.path.exists(FEEDBACK_FILE):
+            try:
+                with open(FEEDBACK_FILE, 'r') as f:
+                    all_feedback = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+        
+        all_feedback[self.username] = self.feedback
+        with open(FEEDBACK_FILE, 'w') as f:
+            json.dump(all_feedback, f, indent=2)
+    
+    def get_rating(self, question_id):
+        return self.feedback.get(question_id, 'neutral')
+    
+    def submit_feedback(self, question_id, rating):
+        if rating in ['like', 'dislike', 'skip']:
+            self.feedback[question_id] = rating
+            self.save_feedback()

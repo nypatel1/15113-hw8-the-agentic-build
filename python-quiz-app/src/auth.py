@@ -1,5 +1,5 @@
 import json
-import hashlib
+import bcrypt
 import os
 
 USERS_FILE = 'data/users.json'
@@ -15,7 +15,7 @@ def save_users(users):
         json.dump(users, f)
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def register(username, password):
     users = load_users()
@@ -27,6 +27,6 @@ def register(username, password):
 
 def login(username, password):
     users = load_users()
-    if username in users and users[username] == hash_password(password):
-        return True
+    if username in users:
+        return bcrypt.checkpw(password.encode(), users[username].encode())
     return False
